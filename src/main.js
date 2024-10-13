@@ -5,5 +5,6 @@ import store from './store'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+import './assets/global.css';
 
 createApp(App).use(store).use(router).mount('#app')
