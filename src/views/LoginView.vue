@@ -1,8 +1,12 @@
 <template>
-  <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
-    <div class="p-4" style="max-width: 400px; width: 100%;">
-      <h2 class="text-center mb-4">Belépés</h2>
-      <form @submit.prevent="handleSubmit">
+  <div class="container d-flex justify-content-center align-items-center mt-5 vh-50">
+    <div class="p-4 mt-5" style="max-width: 400px; width: 50%;">
+      <h1 class="text-center fw-bold">Belépés</h1>
+      
+
+      <hr class="w-25 mx-auto border-5 opacity-100 mt-4 login-border-small">
+
+      <form class="mt-5" @submit.prevent="handleSubmit">
         <div class="mb-3">
           <input
             v-model="username"
@@ -29,9 +33,9 @@
         </div>
         <div v-if="loginError" class="alert alert-danger mt-3">{{ loginError }}</div>
       </form>
-      <div class="text-center mt-3">
+      <div class="text-center mt-5">
         <span>Még nincs fiókod?</span>
-        <Button to="/register" buttonClass="register-btn" class="ms-2">Regisztráció</Button>
+        <Button to="/register" buttonClass="register-btn" class="ms-2 mt-2">Regisztráció</Button>
       </div>
     </div>
   </div>
@@ -99,4 +103,8 @@ a {
 a:hover {
   color: #000;
 }
+.login-border-small {
+  color: #4CAF50;
+}
+
 </style>
