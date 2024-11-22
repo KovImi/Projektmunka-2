@@ -9,11 +9,11 @@
       <form class="mt-5" @submit.prevent="handleSubmit">
         <div class="mb-3">
           <input
-            v-model="username"
+            v-model="email"
             type="text"
             id="username"
             class="form-control"
-            placeholder="Felhasználónév"
+            placeholder="E-mail"
           />
         </div>
         <div class="mb-3">
@@ -25,8 +25,8 @@
             placeholder="Jelszó"
           />
         </div>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <a href="#" class="text-muted">Elfelejtett jelszó?</a>
+        <div class="d-flex justify-content-center align-items-center mb-3">
+          <a href="#" class="text-muted text-center">Elfelejtett jelszó?</a>
         </div>
         <div class="d-grid">
           <button type="submit" class="btn btn-success">Belépés</button>
@@ -43,6 +43,7 @@
 
 <script>
 import Button from '@/components/Button.vue';
+import authService from '@/services/auth-service';
 
 export default {
   components: {
@@ -52,24 +53,24 @@ export default {
     return {
       isLoggedin: false,
       showerror: false,
-      username: '',
+      email: '',
       password: '',
       loginError: ''
     };
   },
   methods: {
-    handleSubmit() {
-      // Replace with actual validation logic
-      const validUsername = 'user';
-      const validPassword = 'password';
-
-      if (this.username === validUsername && this.password === validPassword) {
+    async handleSubmit() {
+      try {
+        const response = await authService.login(this.email, this.password);
         this.isLoggedin = true;
         this.loginError = '';
+        // Store the JWT token in local storage or Vuex store
+        localStorage.setItem('token', response.jwt);
         this.$router.push('/');
-      } else {
+      } catch (error) {
         this.isLoggedin = false;
         this.loginError = 'Hibás felhasználónév vagy jelszó';
+        console.error(error.message);
       }
     },
   },

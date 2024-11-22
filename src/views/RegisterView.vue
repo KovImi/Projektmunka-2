@@ -1,8 +1,8 @@
 <template>
   <div class="container d-flex justify-content-center align-items-center mt-5 vh-50">
     <div class="p-4 mt-5 register-form">
-      <h1 class="text-center fw-bold">Regisztráció</h1>
-      <hr class="w-25 mx-auto border-5 opacity-100 mt-4 login-border-small">
+      <h1 class="text-center fw-bold display-6 display-md-3 display-lg-2">Regisztráció</h1>
+      <hr class="w-50 mx-auto border-5 opacity-100 mt-4 login-border-small">
 
       <form class="mt-5" @submit.prevent="handleSubmit">
         <div class="mb-3">
@@ -10,55 +10,54 @@
             v-model="name"
             type="text"
             id="name"
-            class="form-control"
+            class="custom-input"
             placeholder="Név"
           />
         </div>
-
+        <hr>
         <div class="mb-3">
           <input
             v-model="username"
             type="text"
             id="username"
-            class="form-control"
+            class="custom-input"
             placeholder="Felhasználónév"
           />
         </div>
-
+        <hr>
         <div class="mb-3">
           <input
             v-model="password"
             type="password"
             id="password"
-            class="form-control"
+            class="custom-input"
             placeholder="Jelszó"
           />
         </div>
-
+        <hr>
         <div class="mb-3">
           <input
             v-model="confirmPassword"
             type="password"
             id="confirmPassword"
-            class="form-control"
+            class="custom-input"
             placeholder="Jelszó ismét"
           />
         </div>
-
+        <hr>
         <div class="mb-3">
           <input
             v-model="email"
             type="email"
             id="email"
-            class="form-control"
+            class="custom-input"
             placeholder="E-mail"
           />
         </div>
-        
+        <hr>
         <div class="d-flex justify-content-center">
           <button type="submit" class="btn btn-dark mt-3 rounded-pill">Regisztráció</button>
         </div>
-        <div v-if="registrationError" class="alert alert-danger mt-3">{{ registrationError }}</div>
       </form>
       <div class="text-center mt-4">
         <span>Már van fiókod?</span>
@@ -70,6 +69,7 @@
 
 <script>
 import Button from '@/components/Button.vue';
+import authService from '@/services/auth-service';
 
 export default {
   components: {
@@ -86,20 +86,27 @@ export default {
     };
   },
   methods: {
-    handleSubmit() {
-
+    async handleSubmit() {
       if (this.password !== this.confirmPassword) {
-        this.registrationError = 'A jelszavak nem egyeznek!';
+        this.registrationError = 'A jelszavak nem egyeznek.';
         return;
       }
 
-      this.$router.push('/login');
+      try {
+        await authService.register(this.name, this.username, this.password, this.email);
+        console.log('Registerview rész');
+        this.registrationError = '';
+        this.$router.push('/login');
+      } catch (error) {
+        console.error(error.response?.data?.message || 'Hiba történt a regisztráció során.');
+      }
     },
   },
 };
 </script>
 
 <style scoped>
+import 
 h2 {
   font-weight: bold;
 }
@@ -134,4 +141,5 @@ a:hover {
   width: 50%;
   max-width: 400px;
 }
+
 </style>

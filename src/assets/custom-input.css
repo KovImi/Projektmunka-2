@@ -1,0 +1,13 @@
+.custom-input {
+  border: none; /* Eltávolítja a keretet */
+  background-color: transparent; /* Áttetsző háttér */
+  box-shadow: none; /* Eltávolítja az árnyékot */
+  outline: none; /* Eltávolítja az outline-t (ha rákattintanak) */
+  padding: 5px; /* Egy kis padding a szöveg köré */
+  color: #000; /* A szöveg színe maradjon látható */
+  width: 100%; /* Az input szélessége a konténerhez igazodik */
+}
+
+.custom-input:focus {
+  outline: none;
+}
