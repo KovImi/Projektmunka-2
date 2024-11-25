@@ -1,243 +1,127 @@
 <template>
-  <div class="container my-4">
-    <!-- Felhasználói információ és kilépés gomb -->
+  <div class="container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Időpont</th>
+          <th v-for="day in days" :key="day">{{ day }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="timeSlot in timeSlots" :key="timeSlot">
+          <td>{{ timeSlot }}</td>
+          <td v-for="day in days" :key="day" @click="openModal(day, timeSlot)">
+            <div v-if="bookedSubjects[day] && bookedSubjects[day][timeSlot]">
+              <div>{{ bookedSubjects[day][timeSlot].subject_name }}</div>
+              <div>{{ bookedSubjects[day][timeSlot].subject_level }}</div>
+              <div>{{ bookedSubjects[day][timeSlot].subject_lang }}</div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-    <!-- Hétválasztó nyilak -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <button @click="previousWeek" class="btn btn-outline-secondary" :disabled="currentWeek <= 0">&larr;</button>
-      <h5>{{ currentWeekLabel }}</h5>
-      <button @click="nextWeek" class="btn btn-outline-secondary">&rarr;</button>
+    <div v-if="showModal" class="modal">
+      <div class="modal-content">
+        <span class="close" @click="closeModal">&times;</span>
+        <div v-if="modalContent" class="modal-body">
+          <h3>{{ modalContent.subject_name }}</h3>
+          <p>Szint: {{ modalContent.subject_level }}</p>
+          <p>Nyelv: {{ modalContent.subject_lang }}</p>
+          <p>Leírás: {{ modalContent.subject_desc }}</p>
+          <p>Típus: {{ modalContent.subject_type }}</p>
+        </div>
+      </div>
     </div>
-
-    <!-- Foglalási táblázat -->
-    <BookingTable 
-      :days="currentWeekData.days" 
-      :timeSlots="timeSlots" 
-      :bookedSubjects="bookedSubjects" 
-      :currentWeek="currentWeek" 
-      @book-selected-slots="bookSelectedSlots"
-      @cancel-selected-bookings="cancelSelectedBookings"
-    />
   </div>
 </template>
 
 <script>
-import BookingTable from '@/components/BookingTable.vue';
-
+import axios from '@/plugins/axios';
 export default {
-  components: {
-    BookingTable
-  },
   data() {
     return {
       username: 'Minta Mária',
-      weeksData: {}, // Object to store data for each week
+      days: ['Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek'],
       timeSlots: [
-        '8:00-8:50',
-        '9:00-9:50',
-        '10:00-10:50',
-        '13:00-13:50',
-        '14:00-14:50',
-        '15:00-15:50',
-        '16:00-16:50',
-        '17:00-17:50'
+        '8:00-9:00',
+        '9:00-10:00',
+        '10:00-11:00',
+        '11:00-12:00',
+        '12:00-13:00',
+        '13:00-14:00',
+        '14:00-15:00',
+        '15:00-16:00',
+        '16:00-17:00',
+        '17:00-18:00',
+        '18:00-19:00',
       ],
-      currentWeek: 0, // Az aktuális hét indexe
-      bookedSubjects: {} // Object to track booked subjects per week
+      bookedSubjects: {}, // Object to track booked subjects per week
+      showModal: false,
+      modalContent: null
     };
   },
-  computed: {
-    currentWeekLabel() {
-      const today = new Date();
-      const dayOfWeek = today.getDay();
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1) + this.currentWeek * 7); // Adjust to Monday
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 4); // Friday
-      return `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
-    },
-    currentWeekData() {
-      return this.weeksData[this.currentWeek] || this.generateEmptyWeekData();
-    }
-  },
   methods: {
-    previousWeek() {
-      if (this.currentWeek > 0) {
-        this.currentWeek--;
+    async fetchTimetable() {
+      try {
+        const response = await axios.get('/timetable', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        this.timetableData = response.data;
+        this.populateTimetable();
+        console.log('Timetable data:', this.timetableData);
+      } catch (error) {
+        console.error('Error fetching timetable:', error);
       }
     },
-    nextWeek() {
-      this.currentWeek++;
-      this.initializeWeekData();
-    },
-    initializeWeekData() {
-      if (!this.weeksData[this.currentWeek]) {
-        this.weeksData[this.currentWeek] = this.generateWeekData();
-      }
-    },
-    generateWeekData() {
-      if (this.currentWeek === 0) {
-        return {
-          days: [
-            {
-              label: 'Hétfő',
-              bookings: [
-                { subject: 'Matek', level: 'egyetemi', availableSeats: 2 },
-                { subject: 'Fizika', level: 'egyetemi', availableSeats: 1 },
-                { subject: 'Info', level: 'egyetemi', availableSeats: 3 },
-                {}, {}, {}, {}, {}
-              ]
-            },
-            {
-              label: 'Kedd',
-              bookings: [
-                { subject: 'Angol', level: 'B1', availableSeats: 1 },
-                {}, {}, 
-                { subject: 'Matek', level: 'középsuli', availableSeats: 2 },
-                { subject: 'Info', level: 'egyetemi', availableSeats: 0 },
-                { subject: 'Angol', level: 'B2', availableSeats: 3 },
-                {}, {}
-              ]
-            },
-            {
-              label: 'Szerda',
-              bookings: [
-                { subject: 'Matek', level: 'egyetemi', availableSeats: 2 },
-                {}, 
-                { subject: 'Fizika', level: 'egyetemi', availableSeats: 1 },
-                {}, 
-                { subject: 'Matek', level: 'középsuli', availableSeats: 1 },
-                {}, {}, {}
-              ]
-            },
-            {
-              label: 'Csütörtök',
-              bookings: [
-                { subject: 'Angol', level: 'B1', availableSeats: 2 },
-                {}, {}, 
-                { subject: 'Fizika', level: 'egyetemi', availableSeats: 0 },
-                { subject: 'Angol', level: 'B2', availableSeats: 1 },
-                {}, {}, {}
-              ]
-            },
-            {
-              label: 'Péntek',
-              bookings: [
-                { subject: 'Matek', level: 'egyetemi', availableSeats: 2 },
-                {}, 
-                { subject: 'Fizika', level: 'egyetemi', availableSeats: 0 },
-                {}, 
-                { subject: 'Info', level: 'egyetemi', availableSeats: 3 },
-                {}, {}, {}
-              ]
-            },
-          ]
-        };
-      } else if (this.currentWeek === 1) {
-        return {
-          days: [
-            {
-              label: 'Hétfő',
-              bookings: [
-                { subject: 'Kémia', level: 'egyetemi', availableSeats: 2 },
-                { subject: 'Biológia', level: 'egyetemi', availableSeats: 1 },
-                { subject: 'Történelem', level: 'egyetemi', availableSeats: 3 },
-                {}, {}, {}, {}, {}
-              ]
-            },
-            {
-              label: 'Kedd',
-              bookings: [
-                { subject: 'Francia', level: 'B1', availableSeats: 1 },
-                {}, {}, 
-                { subject: 'Matek', level: 'középsuli', availableSeats: 2 },
-                { subject: 'Info', level: 'egyetemi', availableSeats: 0 },
-                { subject: 'Német', level: 'B2', availableSeats: 3 },
-                {}, {}
-              ]
-            },
-            {
-              label: 'Szerda',
-              bookings: [
-                { subject: 'Matek', level: 'egyetemi', availableSeats: 2 },
-                {}, 
-                { subject: 'Fizika', level: 'egyetemi', availableSeats: 1 },
-                {}, 
-                { subject: 'Matek', level: 'középsuli', availableSeats: 1 },
-                {}, {}, {}
-              ]
-            },
-            {
-              label: 'Csütörtök',
-              bookings: [
-                { subject: 'Angol', level: 'B1', availableSeats: 2 },
-                {}, {}, 
-                { subject: 'Fizika', level: 'egyetemi', availableSeats: 0 },
-                { subject: 'Angol', level: 'B2', availableSeats: 1 },
-                {}, {}, {}
-              ]
-            },
-            {
-              label: 'Péntek',
-              bookings: [
-                { subject: 'Matek', level: 'egyetemi', availableSeats: 2 },
-                {}, 
-                { subject: 'Fizika', level: 'egyetemi', availableSeats: 0 },
-                {}, 
-                { subject: 'Info', level: 'egyetemi', availableSeats: 3 },
-                {}, {}, {}
-              ]
-            },
-          ]
-        };
-      } else {
-        return this.generateEmptyWeekData();
-      }
-    },
-    generateEmptyWeekData() {
-      return {
-        days: [
-          { label: 'Hétfő', bookings: Array(this.timeSlots.length).fill({}) },
-          { label: 'Kedd', bookings: Array(this.timeSlots.length).fill({}) },
-          { label: 'Szerda', bookings: Array(this.timeSlots.length).fill({}) },
-          { label: 'Csütörtök', bookings: Array(this.timeSlots.length).fill({}) },
-          { label: 'Péntek', bookings: Array(this.timeSlots.length).fill({}) }
-        ]
+    async populateTimetable() {
+      this.bookedSubjects = {
+        'Hétfő': {},
+        'Kedd': {},
+        'Szerda': {},
+        'Csütörtök': {},
+        'Péntek': {}
       };
-    },
-    bookSelectedSlots() {
-      if (!this.bookedSubjects[this.currentWeek]) {
-        this.bookedSubjects[this.currentWeek] = new Set(); // Ensure the set is initialized
+      for (const entry of this.timetableData) {
+        const day = entry.timetable_day;
+        const startHour = parseInt(entry.start_time.substring(0, 2));
+        const endHour = startHour + 1;
+        const time = `${startHour}:00-${endHour}:00`;
+        if (this.bookedSubjects[day]) {
+          const subjectDetails = await this.fetchSubjectDetails(entry.subject_id);
+          this.bookedSubjects[day][time] = subjectDetails;
+        }
       }
-      this.currentWeekData.days.forEach(day => {
-        day.bookings.forEach(booking => {
-          if (booking.selected && booking.availableSeats > 0 && !this.bookedSubjects[this.currentWeek].has(booking.subject)) {
-            booking.availableSeats -= 1;
-            booking.selected = false;
-            booking.booked = true;
-            this.bookedSubjects[this.currentWeek].add(booking.subject); // Add subject to booked set for the week
+    },
+    async fetchSubjectDetails(subjectId) {
+      try {
+        const response = await axios.get(`/subject/${subjectId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-      });
-    },
-    cancelSelectedBookings() {
-      if (!this.bookedSubjects[this.currentWeek]) {
-        this.bookedSubjects[this.currentWeek] = new Set(); // Ensure the set is initialized
+        return response.data;
+      } catch (error) {
+        console.error(`Error fetching subject details for subject ID ${subjectId}:`, error);
+        return null;
       }
-      this.currentWeekData.days.forEach(day => {
-        day.bookings.forEach(booking => {
-          if (booking.selected && booking.booked) {
-            booking.availableSeats += 1;
-            booking.selected = false;
-            booking.booked = false;
-            this.bookedSubjects[this.currentWeek].delete(booking.subject); // Remove subject from booked set for the week
-          }
-        });
-      });
+    },
+    openModal(day, timeSlot) {
+      const subject = this.bookedSubjects[day][timeSlot];
+      if (subject) {
+        this.modalContent = subject;
+        this.showModal = true;
+      }
+    },
+    closeModal() {
+      this.showModal = false;
+      this.modalContent = null;
     }
   },
-  created() {
-    this.initializeWeekData();
+  mounted() {
+    this.fetchTimetable();
   }
 };
 </script>
@@ -247,13 +131,43 @@ export default {
   text-align: center;
 }
 
-.booking {
-  font-size: 0.9rem;
-  cursor: pointer;
+.modal {
+  display: block;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
 }
 
-.subject {
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  text-align: center; /* Center align the content */
+}
+
+.modal-body {
+  text-align: center; /* Center align the content */
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
   font-weight: bold;
 }
 
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
 </style>
