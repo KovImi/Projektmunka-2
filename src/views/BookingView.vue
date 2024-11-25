@@ -1,35 +1,86 @@
 <template>
-  <div class="container">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Időpont</th>
-          <th v-for="day in days" :key="day">{{ day }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="timeSlot in timeSlots" :key="timeSlot">
-          <td>{{ timeSlot }}</td>
-          <td v-for="day in days" :key="day" @click="openModal(day, timeSlot)">
-            <div v-if="bookedSubjects[day] && bookedSubjects[day][timeSlot]">
-              <div>{{ bookedSubjects[day][timeSlot].subject_name }}</div>
-              <div>{{ bookedSubjects[day][timeSlot].subject_level }}</div>
-              <div>{{ bookedSubjects[day][timeSlot].subject_lang }}</div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="container mt-5">
+    <div v-if="loading" class="loader-wrapper">
+      <Loader />
+    </div>
+    <div v-else>
+      <h1 class="text-center">Órarend</h1>
+      <p class="text-center">Ha le szeretnél foglalni egy időpontot, kattints az adott órára!</p>
+      <div class="table-responsive border">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Időpont</th>
+              <th v-for="day in days" :key="day">{{ day }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="timeSlot in timeSlots" :key="timeSlot">
+              <td>{{ timeSlot }}</td>
+              <td v-for="day in days" :key="day" @click="openModal(day, timeSlot)">
+                <div v-if="bookedSubjects[day] && bookedSubjects[day][timeSlot]">
+                  <div>{{ bookedSubjects[day][timeSlot].subject_name }}</div>
+                  <div>{{ bookedSubjects[day][timeSlot].subject_level }}</div>
+                  <div>{{ bookedSubjects[day][timeSlot].subject_lang }}</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="text-center mt-5">Lefoglalt időpontok</h2>
+      <div class="table-responsive border mt-3">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Időpont</th>
+              <th>Nap</th>
+              <th>Tantárgy</th>
+              <th>Művelet</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="booking in userBookings" :key="booking.booking_id">
+              <td>{{ booking.start_time }} - {{ booking.end_time }}</td>
+              <td>{{ booking.timetable_day }}</td>
+              <td>{{ booking.subject_name }}</td>
+              <td>
+                <button @click="confirmDelete(booking.booking_id)" class="btn btn-danger">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <div v-if="showModal" class="modal">
-      <div class="modal-content">
+      <div class="modal-content container">
         <span class="close" @click="closeModal">&times;</span>
         <div v-if="modalContent" class="modal-body">
-          <h3>{{ modalContent.subject_name }}</h3>
-          <p>Szint: {{ modalContent.subject_level }}</p>
-          <p>Nyelv: {{ modalContent.subject_lang }}</p>
-          <p>Leírás: {{ modalContent.subject_desc }}</p>
-          <p>Típus: {{ modalContent.subject_type }}</p>
+          <h2 class="my-3">{{ capitalizedModalContent.subject_name }}</h2>
+          <p>Szint: {{ capitalizedModalContent.subject_level }}</p>
+          <p>Nyelv: {{ capitalizedModalContent.subject_lang }}</p>
+          <p>Leírás: {{ capitalizedModalContent.subject_desc }}</p>
+          <p>Típus: {{ capitalizedModalContent.subject_type }}</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" @click="bookTime">Időpont lefoglalása</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showDeleteConfirm" class="modal">
+      <div class="modal-content container">
+        <span class="close" @click="closeDeleteConfirm">&times;</span>
+        <div class="modal-body">
+          <h2 class="my-3">Biztos, hogy le szeretnéd mondani az időpontot?</h2>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="closeDeleteConfirm">Mégse</button>
+            <button type="button" class="btn btn-danger" @click="deleteBooking">Igen</button>
         </div>
       </div>
     </div>
@@ -38,10 +89,15 @@
 
 <script>
 import axios from '@/plugins/axios';
+import { bookTimeSlot, getUserBookings } from '@/services/booking-service';
+import Loader from '@/components/Loader.vue';
+
 export default {
+  components: {
+    Loader
+  },
   data() {
     return {
-      username: 'Minta Mária',
       days: ['Hétfő', 'Kedd', 'Szerda', 'Csütörtök', 'Péntek'],
       timeSlots: [
         '8:00-9:00',
@@ -57,11 +113,31 @@ export default {
         '18:00-19:00',
       ],
       bookedSubjects: {}, // Object to track booked subjects per week
+      userBookings: [], // Array to track user bookings
       showModal: false,
-      modalContent: null
+      modalContent: null,
+      showDeleteConfirm: false,
+      bookingToDelete: null,
+      loading: true // State to track loading
     };
   },
+  computed: {
+    capitalizedModalContent() {
+      if (!this.modalContent) return {};
+      return {
+        subject_name: this.capitalizeFirstLetter(this.modalContent.subject_name),
+        subject_level: this.capitalizeFirstLetter(this.modalContent.subject_level),
+        subject_lang: this.capitalizeFirstLetter(this.modalContent.subject_lang),
+        subject_desc: this.capitalizeFirstLetter(this.modalContent.subject_desc),
+        subject_type: this.capitalizeFirstLetter(this.modalContent.subject_type),
+      };
+    }
+  },
   methods: {
+    capitalizeFirstLetter(string) {
+      if (!string) return '';
+      return string.charAt(0).toUpperCase() + string.slice(1);
+    },
     async fetchTimetable() {
       try {
         const response = await axios.get('/timetable', {
@@ -70,13 +146,23 @@ export default {
           }
         });
         this.timetableData = response.data;
-        this.populateTimetable();
+        await this.populateTimetable();
         console.log('Timetable data:', this.timetableData);
       } catch (error) {
         console.error('Error fetching timetable:', error);
       }
     },
+    async fetchUserBookings() {
+      try {
+        const response = await getUserBookings();
+        this.userBookings = response;
+        console.log('User bookings:', this.userBookings);
+      } catch (error) {
+        console.error('Error fetching user bookings:', error);
+      }
+    },
     async populateTimetable() {
+      await this.fetchUserBookings(); // Fetch user bookings before populating timetable
       this.bookedSubjects = {
         'Hétfő': {},
         'Kedd': {},
@@ -91,9 +177,13 @@ export default {
         const time = `${startHour}:00-${endHour}:00`;
         if (this.bookedSubjects[day]) {
           const subjectDetails = await this.fetchSubjectDetails(entry.subject_id);
-          this.bookedSubjects[day][time] = subjectDetails;
+          this.bookedSubjects[day][time] = {
+            ...subjectDetails,
+            timetable_id: entry.timetable_id // Ensure timetable_id is included
+          };
         }
       }
+      this.loading = false; // Set loading to false after data is populated
     },
     async fetchSubjectDetails(subjectId) {
       try {
@@ -118,10 +208,49 @@ export default {
     closeModal() {
       this.showModal = false;
       this.modalContent = null;
+    },
+    async bookTime() {
+      try {
+        console.log('Booking timetable_id:', this.modalContent.timetable_id);
+        await bookTimeSlot(this.modalContent.timetable_id);
+        alert('Időpont sikeresen lefoglalva!');
+        this.closeModal();
+        this.fetchUserBookings(); // Refresh user bookings after successful booking
+      } catch (error) {
+        if (error.response && error.response.status === 409) {
+          alert('Ez az időpont már le van foglalva.');
+        } else {
+          console.error('Hiba történt a foglalás során:', error);
+          alert('Hiba történt a foglalás során.');
+        }
+      }
+    },
+    confirmDelete(bookingId) {
+      this.bookingToDelete = bookingId;
+      this.showDeleteConfirm = true;
+    },
+    closeDeleteConfirm() {
+      this.showDeleteConfirm = false;
+      this.bookingToDelete = null;
+    },
+    async deleteBooking() {
+      try {
+        await axios.delete(`/delete_booking/${this.bookingToDelete}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        alert('Foglalás sikeresen törölve!');
+        this.closeDeleteConfirm();
+        this.fetchUserBookings(); // Refresh user bookings after successful deletion
+      } catch (error) {
+        console.error('Hiba történt a foglalás törlése során:', error);
+        alert('Hiba történt a foglalás törlése során.');
+      }
     }
   },
-  mounted() {
-    this.fetchTimetable();
+  async mounted() {
+    await this.fetchTimetable();
   }
 };
 </script>
@@ -129,6 +258,15 @@ export default {
 <style scoped>
 .table {
   text-align: center;
+}
+td > div {
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+tr {
+  height: 100px; /* Állítsd be a kívánt minimális magasságot */
+  vertical-align: middle; /* Középre igazítja a tartalmat függőlegesen */
 }
 
 .modal {
@@ -149,7 +287,7 @@ export default {
   margin: 15% auto;
   padding: 20px;
   border: 1px solid #888;
-  width: 80%;
+  width: 40%;
   text-align: center; /* Center align the content */
 }
 
