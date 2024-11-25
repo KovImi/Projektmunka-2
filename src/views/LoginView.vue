@@ -2,10 +2,7 @@
   <div class="container d-flex justify-content-center align-items-center mt-5 vh-50">
     <div class="p-4 mt-5" style="max-width: 400px; width: 50%;">
       <h1 class="text-center fw-bold">Belépés</h1>
-      
-
       <hr class="w-25 mx-auto border-5 opacity-100 mt-4 login-border-small">
-
       <form class="mt-5" @submit.prevent="handleSubmit">
         <div class="mb-3">
           <input
@@ -44,6 +41,7 @@
 <script>
 import Button from '@/components/Button.vue';
 import authService from '@/services/auth-service';
+import { mapActions, mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -51,24 +49,28 @@ export default {
   },
   data() {
     return {
-      isLoggedin: false,
-      showerror: false,
       email: '',
       password: '',
       loginError: ''
     };
   },
+  computed: {
+    ...mapGetters(['role']) // Hozzáadjuk a role gettert
+  },
   methods: {
+    ...mapActions(['login', 'setUser']),
     async handleSubmit() {
       try {
         const response = await authService.login(this.email, this.password);
-        this.isLoggedin = true;
+        localStorage.setItem('token', response.jwt); // Store token in localStorage
+        this.login(); // Vuex login action
+        console.log("Sikeres Bejelentkezés!");
         this.loginError = '';
-        // Store the JWT token in local storage or Vuex store
-        localStorage.setItem('token', response.jwt);
+        const userData = await authService.getUserByEmail(this.email, response.jwt);
+        this.setUser(userData); // Store user data in Vuex
+        console.log("User Data:", userData);
         this.$router.push('/');
       } catch (error) {
-        this.isLoggedin = false;
         this.loginError = 'Hibás felhasználónév vagy jelszó';
         console.error(error.message);
       }
@@ -105,7 +107,6 @@ a:hover {
   color: #000;
 }
 .login-border-small {
-  color: #4CAF50;
+  border-color: #4CAF50;
 }
-
 </style>

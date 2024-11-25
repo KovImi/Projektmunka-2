@@ -27,7 +27,22 @@ const register = async (name, username, password, email) => {
   }
 };
 
+const getUserByEmail = async (email, token) => {
+  try {
+    const response = await axios.get(`/userEmail/${email}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response.data.message || 'Hiba történt a felhasználó adatainak lekérése során.');
+  }
+};
+
+
 export default {
   login,
-  register
+  register,
+  getUserByEmail,
 };

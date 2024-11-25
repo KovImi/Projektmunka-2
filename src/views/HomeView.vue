@@ -6,7 +6,7 @@
         Szia! Minta Mária vagyok, 20 éve segítek diákoknak a tananyag megértésében. Ha
         vizsgára készülsz, vagy csak szeretnéd jobban átlátni a tananyagot, szívesen segítek.
       </p>
-      <Button href="#" buttonClass="login-btn" class="btn-lg text-white my-4 px-5 py-4 fw-bold fs-4">Foglalj időpontot most!</Button>
+      <Button to="/appointment" buttonClass="login-btn" class="btn-lg text-white my-4 px-5 py-4 fw-bold fs-4">Foglalj időpontot most!</Button>
       <p class="mt-3 text-center lead">
         vagy nézd meg a bemutatkozó oldalamat <router-link to="/about"><strong>itt</strong></router-link>.
       </p>
