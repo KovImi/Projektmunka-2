@@ -287,17 +287,13 @@ export default {
       if (!this.selectedSubjectId || !this.selectedDay || !this.selectedTimeSlot) return;
 
       const [startHour, endHour] = this.selectedTimeSlot.split('-').map(time => time.trim());
-      const formattedStartHour = startHour.padStart(5, '0'); // Add leading zero if necessary
-      const formattedEndHour = endHour.padStart(5, '0'); // Add leading zero if necessary
       const timetableData = {
         subject_id: this.selectedSubjectId,
         timetable_day: this.selectedDay,
-        timetable_bool: true,
-        start_time: formattedStartHour,
-        end_time: formattedEndHour
+        timetable_bool: false, // Set timetable_bool to false
+        start_time: startHour,
+        end_time: endHour
       };
-
-      console.log('Timetable Data:', timetableData); // Debugging
 
       try {
         this.loading = true; // Show loader while adding timetable
@@ -324,15 +320,14 @@ export default {
       try {
         console.log('Booking timetable_id:', this.modalContent.timetable_id);
         await bookTimeSlot(this.modalContent.timetable_id);
-        alert('Időpont sikeresen lefoglalva!');
+        console.log('Időpont sikeresen lefoglalva!');
         this.closeModal();
         this.fetchUserBookings(); // Refresh user bookings after successful booking
       } catch (error) {
         if (error.response && error.response.status === 409) {
-          alert('Ez az időpont már le van foglalva.');
+          console.log('Ez az időpont már le van foglalva.');
         } else {
           console.error('Hiba történt a foglalás során:', error);
-          alert('Hiba történt a foglalás során.');
         }
       }
     },
@@ -345,6 +340,11 @@ export default {
       this.bookingToDelete = null;
     },
     async deleteBooking() {
+      if (!this.bookingToDelete) {
+        alert('Nincs kiválasztott foglalás a törléshez.');
+        return;
+      }
+
       try {
         this.loading = true; // Show loader while deleting
         await axios.delete(`/delete_booking/${this.bookingToDelete}`, {

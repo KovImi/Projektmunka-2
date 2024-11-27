@@ -3,7 +3,7 @@ import axios from '@/plugins/axios';
 export const bookTimeSlot = async (timetableId) => {
   try {
     const response = await axios.put(`/book/${timetableId}`, {
-      timetable_id: timetableId
+      timetable_id: timetableId,
     }, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`
