@@ -287,13 +287,17 @@ export default {
       if (!this.selectedSubjectId || !this.selectedDay || !this.selectedTimeSlot) return;
 
       const [startHour, endHour] = this.selectedTimeSlot.split('-').map(time => time.trim());
+      const formattedStartHour = startHour.padStart(5, '0'); // Add leading zero if necessary
+      const formattedEndHour = endHour.padStart(5, '0'); // Add leading zero if necessary
       const timetableData = {
         subject_id: this.selectedSubjectId,
         timetable_day: this.selectedDay,
         timetable_bool: true,
-        start_time: startHour,
-        end_time: endHour
+        start_time: formattedStartHour,
+        end_time: formattedEndHour
       };
+
+      console.log('Timetable Data:', timetableData); // Debugging
 
       try {
         this.loading = true; // Show loader while adding timetable
