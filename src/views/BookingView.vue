@@ -6,7 +6,7 @@
       <Loader />
     </div>
     <div v-else>
-      <div class="table-responsive border">
+      <div class="table-responsive border rounded">
         <table class="table table-striped">
           <thead>
             <tr>
@@ -32,7 +32,7 @@
         </table>
       </div>
 
-      <div v-if="!isAuthor">
+      <div v-if="!isAuthor && hasBookings">
         <h2 class="text-center mt-5">Lefoglalt időpontok</h2>
         <div class="table-responsive border mt-3">
           <table class="table table-striped">
@@ -58,6 +58,10 @@
             </tbody>
           </table>
         </div>
+      </div>
+      <div v-if="!isAuthor && !hasBookings">
+        <h2 class="text-center mt-5">Lefoglalt időpontok</h2>
+        <p class="text-center mt-5" >Még nincsen lefoglalt időpontod!</p>
       </div>
     </div>
 
@@ -180,12 +184,18 @@ export default {
         subject_desc: this.capitalizeFirstLetter(this.modalContent.subject_desc),
         subject_type: this.capitalizeFirstLetter(this.modalContent.subject_type),
       };
+    },
+    hasBookings() {
+      return this.userBookings.length > 0;
     }
   },
   methods: {
     capitalizeFirstLetter(string) {
       if (!string) return '';
       return string.charAt(0).toUpperCase() + string.slice(1);
+    },
+    formatTime(time) {
+      return time.padStart(5, '0');
     },
     async fetchTimetable() {
       try {
@@ -286,7 +296,7 @@ export default {
     async addTimetable() {
       if (!this.selectedSubjectId || !this.selectedDay || !this.selectedTimeSlot) return;
 
-      const [startHour, endHour] = this.selectedTimeSlot.split('-').map(time => time.trim());
+      const [startHour, endHour] = this.selectedTimeSlot.split('-').map(time => this.formatTime(time.trim()));
       const timetableData = {
         subject_id: this.selectedSubjectId,
         timetable_day: this.selectedDay,
@@ -294,6 +304,8 @@ export default {
         start_time: startHour,
         end_time: endHour
       };
+
+      console.log('Adding timetable:', timetableData); // Log the timetable data
 
       try {
         this.loading = true; // Show loader while adding timetable
@@ -322,7 +334,7 @@ export default {
         await bookTimeSlot(this.modalContent.timetable_id);
         console.log('Időpont sikeresen lefoglalva!');
         this.closeModal();
-        this.fetchUserBookings(); // Refresh user bookings after successful booking
+        await this.fetchUserBookings(); // Refresh user bookings after successful booking
       } catch (error) {
         if (error.response && error.response.status === 409) {
           console.log('Ez az időpont már le van foglalva.');
