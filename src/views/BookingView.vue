@@ -1,7 +1,18 @@
 <template>
   <div class="container mt-5">
-    <h1 class="text-center">Órarend</h1>
-    <p class="text-center">Ha le szeretnél foglalni egy időpontot, kattints az adott órára!</p>
+    <div class="row">
+      <div class="col-md-4"></div>
+      <div class="col-md-4">
+        <h1 class="text-center">Órarend</h1>
+        <p class="text-center">Ha le szeretnél foglalni egy időpontot, kattints az adott órára!</p>
+      </div>
+      <div class="col-md-4 d-flex justify-content-end align-items-center">
+        <Button to="/subjects" buttonClass="btn btn-primary">
+          Tantárgyak megtekintése <i class="bi bi-arrow-right"></i>
+        </Button>
+      </div>
+    </div>
+    
     <div v-if="loading" class="loader-wrapper">
       <Loader />
     </div>
@@ -136,10 +147,12 @@ import { bookTimeSlot, getUserBookings } from '@/services/booking-service';
 import { getSubjects } from '@/services/subject-service';
 import Loader from '@/components/Loader.vue';
 import { mapGetters } from 'vuex';
+import Button from '@/components/Button.vue';
 
 export default {
   components: {
-    Loader
+    Loader,
+    Button
   },
   data() {
     return {
@@ -461,5 +474,8 @@ tr {
   color: black;
   text-decoration: none;
   cursor: pointer;
+}
+.bi-arrow-right {
+  margin-left: 10px;
 }
 </style>

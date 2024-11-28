@@ -7,7 +7,7 @@ import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import BookingView from '../views/BookingView.vue';
 import ProfileView from '@/views/ProfileView.vue';
-
+import SubjectsView from '@/views/SubjectsView.vue';
 import store from '@/store';
 
 const routes = [
@@ -26,7 +26,8 @@ const routes = [
         next(); // Ha a felhasználó be van jelentkezve, engedjük tovább
       }
     }
-  }
+  },
+  { path: '/subjects', name: 'Subjects', component: SubjectsView }
 ];
 
 const router = createRouter({
