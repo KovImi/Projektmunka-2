@@ -8,6 +8,7 @@ import RegisterView from '../views/RegisterView.vue';
 import BookingView from '../views/BookingView.vue';
 import ProfileView from '@/views/ProfileView.vue';
 import SubjectsView from '@/views/SubjectsView.vue';
+import AdminView from '@/views/AdminView.vue';
 import store from '@/store';
 
 const routes = [
@@ -27,7 +28,16 @@ const routes = [
       }
     }
   },
-  { path: '/subjects', name: 'Subjects', component: SubjectsView }
+  { path: '/subjects', name: 'Subjects', component: SubjectsView },
+  { path: '/admin', name: 'Admin', component: AdminView, 
+    beforeEnter: (to, from, next) => {
+      if (!store.getters.isAdmin) {
+        next('/'); // Ha a felhasználó nem admin, átirányítjuk a főoldalra
+      } else {
+        next(); // Ha a felhasználó admin, engedjük tovább
+      }
+    }
+  }
 ];
 
 const router = createRouter({

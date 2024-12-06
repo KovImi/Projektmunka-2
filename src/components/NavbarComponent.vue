@@ -37,6 +37,7 @@
             </button>
             <ul class="dropdown-menu" aria-labelledby="profileDropdown">
               <li><router-link class="dropdown-item" to="/profile">Fiókom</router-link></li>
+              <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin">Admin oldal</router-link></li> <!-- Admin oldal link -->
               <li><button class="dropdown-item" @click="handleLogout">Kijelentkezés</button></li>
             </ul>
           </div>
@@ -56,7 +57,7 @@ export default {
     Button
   },
   computed: {
-    ...mapGetters(['isLoggedIn']),
+    ...mapGetters(['isLoggedIn', 'isAdmin']), // Hozzáadjuk az isAdmin gettert
   },
   methods: {
     ...mapActions(['logout']),

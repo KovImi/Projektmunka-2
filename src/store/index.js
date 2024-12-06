@@ -7,11 +7,13 @@ export default createStore({
     isLoggedIn: !!localStorage.getItem('token'),
     user: null,
     isAuthor: null,
+    isAdmin: null, // Új state változó az admin ellenőrzéséhez
   },
   getters: {
     isLoggedIn: state => state.isLoggedIn,
     user: state => state.user,
     isAuthor: state => state.isAuthor, // Új getter a rang lekéréséhez
+    isAdmin: state => state.isAdmin, // Új getter az admin ellenőrzéséhez
   },
   mutations: {
     setLoggedIn(state, status) {
@@ -22,6 +24,9 @@ export default createStore({
     },
     setIsAuthor(state, isAuthor) {
       state.isAuthor = isAuthor;
+    },
+    setIsAdmin(state, isAdmin) {
+      state.isAdmin = isAdmin;
     }
   },
   actions: {
@@ -38,8 +43,11 @@ export default createStore({
         console.log(response.data);
 
         const roles = response.data.roles;
-        const isAuthor = roles.some(role => role.role_name === 'author');
+        const isAdmin = roles.some(role => role.role_name === 'administrator');
+        const isAuthor = roles.some(role => role.role_name === 'author') || isAdmin; // Ha admin, akkor isAuthor is true
+        commit('setIsAdmin', isAdmin);
         commit('setIsAuthor', isAuthor);
+        console.log("isAdmin: ", isAdmin);
         console.log("isAuthor: ", isAuthor);
       } catch (error) {
         console.error('Error during /checkAuth API call:', error);
@@ -59,8 +67,11 @@ export default createStore({
           commit('setUser', user);
           console.log('User data:', user); // Log user data to console
           const roles = response.data.roles || [];
-          const isAuthor = roles.some(role => role.role_name === 'author');
+          const isAdmin = roles.some(role => role.role_name === 'administrator');
+          const isAuthor = roles.some(role => role.role_name === 'author') || isAdmin; // Ha admin, akkor isAuthor is true
+          commit('setIsAdmin', isAdmin);
           commit('setIsAuthor', isAuthor);
+          console.log("isAdmin: ", isAdmin);
           console.log("isAuthor: ", isAuthor);
         } catch (error) {
           console.error('Error fetching user data:', error);
@@ -71,6 +82,7 @@ export default createStore({
       commit('setLoggedIn', false);
       commit('setUser', null);
       commit('setIsAuthor', false); // Rang törlése kijelentkezéskor
+      commit('setIsAdmin', false); // Admin státusz törlése kijelentkezéskor
       localStorage.removeItem('token');
     },
     setUser({ commit }, user) {
