@@ -14,3 +14,31 @@ export const getSubjects = async () => {
     throw error;
   }
 };
+
+export const addSubject = async (subjectData) => {
+  try {
+    const response = await axios.post('/subject', subjectData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error adding subject:', error);
+    throw error;
+  }
+};
+
+export const deleteSubject = async (subjectId) => {
+  try {
+    const response = await axios.delete(`/subject/${subjectId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting subject:', error);
+    throw error;
+  }
+};

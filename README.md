@@ -5,6 +5,11 @@
 npm install
 ```
 
+## Installing Vue Client
+```
+npm install -g @vue/cli
+```
+
 ### Compiles and hot-reloads for development
 ```
 npm run serve

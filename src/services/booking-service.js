@@ -29,3 +29,18 @@ export const getUserBookings = async () => {
     throw error;
   }
 };
+
+export const getBookedByTimetableId = async (timetableId) => {
+  try {
+    const response = await axios.get(`/booking/${timetableId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    console.log(response);
+    return response.data;
+  } catch (error) {
+    console.error('Hiba történt a foglalások lekérése során:', error);
+    throw error;
+  }
+};

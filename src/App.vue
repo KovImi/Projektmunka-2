@@ -8,11 +8,17 @@
 
 <script>
 import NavbarComponent from './components/NavbarComponent.vue';
-
+import { mapActions } from 'vuex';
 
 export default {
   components: {
     NavbarComponent,
+  },
+  created() {
+    this.fetchUserData();
+  },
+  methods: {
+    ...mapActions(['fetchUserData']),
   }
 }
 </script>

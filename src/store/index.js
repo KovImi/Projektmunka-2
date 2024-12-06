@@ -1,5 +1,6 @@
 import { createStore } from 'vuex'
 import axios from '@/plugins/axios'; // Importáljuk az axios-t a plugins mappából
+import authService from '@/services/auth-service'; // Importáljuk az authService-t
 
 export default createStore({
   state: {
@@ -19,7 +20,7 @@ export default createStore({
     setUser(state, user) {
       state.user = user;
     },
-    setIsAuthor(state, isAuthor) { // Új mutation az isAuthor beállításához
+    setIsAuthor(state, isAuthor) {
       state.isAuthor = isAuthor;
     }
   },
@@ -53,9 +54,10 @@ export default createStore({
               'Authorization': `Bearer ${token}`
             }
           });
-          const user = response.data.user || response.data; // Adjust based on actual API response structure
+          const username = response.data.username;
+          const user = await authService.getUserByUsername(username, token);
           commit('setUser', user);
-          console.log('Refresh checkAuth:', user); // Log user data to console
+          console.log('User data:', user); // Log user data to console
           const roles = response.data.roles || [];
           const isAuthor = roles.some(role => role.role_name === 'author');
           commit('setIsAuthor', isAuthor);
@@ -73,7 +75,7 @@ export default createStore({
     },
     setUser({ commit }, user) {
       commit('setUser', user);
-    },
+    }
   },
   modules: {
   }

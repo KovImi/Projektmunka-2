@@ -93,6 +93,7 @@ export default {
       }
 
       try {
+        console.log('Most regisztrálás...');
         await authService.register(this.name, this.username, this.password, this.email);
         console.log('Registerview rész');
         this.registrationError = '';
