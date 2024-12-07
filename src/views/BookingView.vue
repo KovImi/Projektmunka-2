@@ -198,7 +198,7 @@ export default {
       showDeleteTimetableConfirm: false,
       bookingToDelete: null,
       timetableToDelete: null,
-      loading: true, // State to track loading
+      loading: true,
       showAlert: false,
       alertMessage: '',
     };
@@ -260,7 +260,7 @@ export default {
       }
     },
     async populateTimetable() {
-      await this.fetchUserBookings(); // Fetch user bookings before populating timetable
+      await this.fetchUserBookings(); // Fetcheljük a felhasználó foglalásokat az időpontok előtt
       this.bookedSubjects = {
         'Hétfő': {},
         'Kedd': {},
@@ -277,11 +277,11 @@ export default {
           const subjectDetails = await this.fetchSubjectDetails(entry.subject_id);
           this.bookedSubjects[day][time] = {
             ...subjectDetails,
-            timetable_id: entry.timetable_id // Ensure timetable_id is included
+            timetable_id: entry.timetable_id
           };
         }
       }
-      this.loading = false; // Set loading to false after data is populated
+      this.loading = false;
     },
     async fetchSubjectDetails(subjectId) {
       try {
@@ -333,15 +333,12 @@ export default {
       const timetableData = {
         subject_id: this.selectedSubjectId,
         timetable_day: this.selectedDay,
-        timetable_bool: false, // Set timetable_bool to false
+        timetable_bool: false,
         start_time: startHour,
         end_time: endHour
       };
-
-      console.log('Adding timetable:', timetableData); // Log the timetable data
-
       try {
-        this.loading = true; // Show loader while adding timetable
+        this.loading = true; // Mutassuk a töltőt az időpont hozzáadása közben
         await axios.post('/timetable', timetableData, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -350,25 +347,25 @@ export default {
         this.alertMessage = 'Időpont sikeresen hozzáadva!';
         this.showAlert = true;
         this.closeAddTimetableModal();
-        await this.fetchTimetable(); // Refresh timetable after successful addition
+        await this.fetchTimetable(); // Frissítsük az időpontokat a sikeres hozzáadás után
       } catch (error) {
         console.error('Hiba történt az időpont hozzáadása során:', error);
         this.alertMessage = 'Hiba történt az időpont hozzáadása során.';
         this.showAlert = true;
       } finally {
-        this.loading = false; // Hide loader after addition
+        this.loading = false;
       }
     },
     async bookTime() {
       try {
-        this.loading = true; // Show loader while booking
+        this.loading = true; 
         console.log('Booking timetable_id:', this.modalContent.timetable_id);
         await bookTimeSlot(this.modalContent.timetable_id);
         console.log('Időpont sikeresen lefoglalva!');
         this.alertMessage = 'Időpont sikeresen lefoglalva!';
         this.showAlert = true;
         this.closeModal();
-        await this.fetchUserBookings(); // Refresh user bookings after successful booking
+        await this.fetchUserBookings(); // Frissítsük a felhasználó foglalásokat a sikeres foglalás után
       } catch (error) {
         if (error.response && error.response.status === 409) {
           console.log('Ez az időpont már le van foglalva.');
@@ -381,7 +378,7 @@ export default {
           this.showAlert = true;
         }
       } finally {
-        this.loading = false; // Hide loader after booking
+        this.loading = false; 
       }
     },
     confirmDeleteBooking(bookingId) {
@@ -400,7 +397,7 @@ export default {
       }
 
       try {
-        this.loading = true; // Show loader while deleting
+        this.loading = true;
         await axios.delete(`/delete_booking/${this.bookingToDelete}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -409,14 +406,14 @@ export default {
         this.alertMessage = 'Foglalás sikeresen törölve!';
         this.showAlert = true;
         this.closeDeleteConfirm();
-        this.closeModal(); // Close the modal after deletion
-        await this.fetchTimetable(); // Refresh timetable after successful deletion
+        this.closeModal(); 
+        await this.fetchTimetable(); // Frissítsük az időpontokat a sikeres törlés után
       } catch (error) {
         console.error('Hiba történt az időpont törlése során:', error);
         this.alertMessage = 'Hiba történt az időpont törlése során.';
         this.showAlert = true;
       } finally {
-        this.loading = false; // Hide loader after deletion
+        this.loading = false;
       }
     },
     confirmDeleteTimetable() {
@@ -431,7 +428,7 @@ export default {
     },
     async deleteTimetable() {
       try {
-        this.loading = true; // Show loader while deleting
+        this.loading = true; 
         await axios.delete(`/timetable/${this.timetableToDelete}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -440,14 +437,14 @@ export default {
         this.alertMessage = 'Időpont sikeresen törölve!';
         this.showAlert = true;
         this.closeDeleteTimetableConfirm();
-        this.closeModal(); // Close the modal after deletion
-        await this.fetchTimetable(); // Refresh timetable after successful deletion
+        this.closeModal(); 
+        await this.fetchTimetable(); // Frissítsük az időpontokat a sikeres törlés után
       } catch (error) {
         console.error('Hiba történt az időpont törlése során:', error);
         this.alertMessage = 'Hiba történt az időpont törlése során.';
         this.showAlert = true;
       } finally {
-        this.loading = false; // Hide loader after deletion
+        this.loading = false;
       }
     }
   },
@@ -467,8 +464,8 @@ td > div {
 }
 
 tr {
-  height: 100px; /* Állítsd be a kívánt minimális magasságot */
-  vertical-align: middle; /* Középre igazítja a tartalmat függőlegesen */
+  height: 100px;
+  vertical-align: middle; 
 }
 
 .modal {
@@ -490,11 +487,11 @@ tr {
   padding: 20px;
   border: 1px solid #888;
   width: 40%;
-  text-align: center; /* Center align the content */
+  text-align: center; 
 }
 
 .modal-body {
-  text-align: center; /* Center align the content */
+  text-align: center;
 }
 
 .close {
@@ -514,7 +511,7 @@ tr {
   margin-left: 10px;
 }
 .alert {
-  z-index: 1050; /* Ensure the alert is above other elements */
+  z-index: 1050;
   width: 70%;
   font-weight: bold;
   left: 50%;

@@ -55,19 +55,19 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(['role']) // Hozzáadjuk a role gettert
+    ...mapGetters(['role'])
   },
   methods: {
     ...mapActions(['login', 'setUser']),
     async handleSubmit() {
       try {
         const response = await authService.login(this.email, this.password);
-        localStorage.setItem('token', response.jwt); // Store token in localStorage
+        localStorage.setItem('token', response.jwt); // localStorage token
         this.login(); // Vuex login action
         console.log("Sikeres Bejelentkezés!");
         this.loginError = '';
         const userData = await authService.getUserByEmail(this.email, response.jwt);
-        this.setUser(userData); // Store user data in Vuex
+        this.setUser(userData); // Vuex-ben tároljuk a felhasználó adatait
         console.log("User Data:", userData);
         this.$router.push('/');
       } catch (error) {

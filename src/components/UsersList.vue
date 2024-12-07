@@ -34,7 +34,6 @@
       </table>
     </div>
 
-    <!-- Edit User Modal -->
     <div v-if="showEditModal" class="modal">
       <div class="modal-content">
         <span class="close" @click="closeEditModal">&times;</span>
@@ -65,7 +64,7 @@
       </div>
     </div>
 
-    <!-- Add User Modal -->
+
     <div v-if="showAddUserModal" class="modal">
       <div class="modal-content">
         <span class="close" @click="closeAddUserModal">&times;</span>

@@ -1,13 +1,21 @@
 <template>
   <div class="container mt-5">
-    <h1 class="text-center mb-5">Tantárgyak</h1>
+    <div class="row mb-3">
+      <div class="col-lg-3"></div>
+      <div class="col-lg-6">
+        <h1 class="text-center">Tantárgyak</h1>
+      </div>
+      <div class="col-lg-3 text-end">
+        <button v-if="isAuthor" class="btn btn-success" @click="showAddSubjectModal = true">Új tárgy hozzáadása</button>
+      </div>
+    </div>
     <div v-if="loading" class="loader-wrapper">
       <Loader />
     </div>
     <div v-else>
       <div class="row">
         <div class="col-md-4" v-for="subject in capitalizedSubjects" :key="subject.subject_id">
-          <div class="card mb-3" @click="openSubjectModal(subject)">
+          <div class="card mb-3 subject-card" @click="openSubjectModal(subject)">
             <div class="card-body">
               <h5 class="card-title mb-3">{{ subject.subject_name }}</h5>
               <p class="card-text mb-1">Szint: {{ subject.subject_level }}</p>
@@ -16,15 +24,12 @@
           </div>
         </div>
       </div>
-      <div v-if="isAuthor" class="text-center mt-4">
-        <button class="btn btn-primary" @click="showAddSubjectModal = true">Új tárgy hozzáadása</button>
-      </div>
     </div>
 
     <!-- Add Subject Modal -->
     <div v-if="showAddSubjectModal" class="modal">
       <div class="modal-content container">
-        <span class="close" @click="closeAddSubjectModal">&times;</span>
+        <span class="close d-flex justify-content-end mx-3" @click="closeAddSubjectModal">&times;</span>
         <div class="modal-body">
           <h2 class="my-3">Új tárgy hozzáadása</h2>
           <form @submit.prevent="addSubject">
@@ -57,10 +62,10 @@
       </div>
     </div>
 
-    <!-- Subject Details Modal -->
+
     <div v-if="showSubjectModal" class="modal">
       <div class="modal-content container">
-        <span class="close" @click="closeSubjectModal">&times;</span>
+        <span class="close d-flex justify-content-end mx-3" @click="closeSubjectModal">&times;</span>
         <div class="modal-body">
           <h2 class="my-3">{{ selectedSubject.subject_name }}</h2>
           <p><strong>Szint:</strong> {{ selectedSubject.subject_level }}</p>
@@ -73,10 +78,9 @@
       </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
+
     <div v-if="showDeleteConfirm" class="modal">
       <div class="modal-content container">
-        <span class="close" @click="closeDeleteConfirm">&times;</span>
         <div class="modal-body">
           <h2 class="my-3">Biztos törölni akarod a "{{ selectedSubject.subject_name }}" tárgyat?</h2>
         </div>
@@ -86,6 +90,12 @@
         </div>
       </div>
     </div>
+
+    <div v-if="showAlert" class="alert alert-success alert-dismissible fade show fixed-bottom m-3" role="alert">
+      {{ alertMessage }}
+      <button type="button" class="btn-close" @click="showAlert = false" aria-label="Close"></button>
+    </div>
+
   </div>
 </template>
 
@@ -113,7 +123,9 @@ export default {
         subject_desc: '',
         subject_type: '',
         subject_price: 6000 // Constans érték
-      }
+      },
+      showAlert: false,
+      alertMessage: '',
     };
   },
   computed: {
@@ -156,9 +168,10 @@ export default {
 
       try {
         await addSubject(subjectData);
-        alert('Tárgy sikeresen hozzáadva!');
+        this.alertMessage = 'Tárgy sikeresen hozzáadva!';
+        this.showAlert = true;
         this.closeAddSubjectModal();
-        await this.fetchSubjects(); // Refresh subjects after successful addition
+        await this.fetchSubjects(); 
       } catch (error) {
         console.error('Hiba történt a tárgy hozzáadása során:', error);
         alert('Hiba történt a tárgy hozzáadása során.');
@@ -173,6 +186,7 @@ export default {
       this.selectedSubject = {};
     },
     confirmDeleteSubject() {
+      this.showSubjectModal = false;
       this.showDeleteConfirm = true;
     },
     closeDeleteConfirm() {
@@ -181,10 +195,11 @@ export default {
     async deleteSubject() {
       try {
         await deleteSubject(this.selectedSubject.subject_id);
-        alert('Tárgy sikeresen törölve!');
+        this.alertMessage = 'Tárgy sikeresen törölve!';
+        this.showAlert = true;
         this.closeDeleteConfirm();
         this.closeSubjectModal();
-        await this.fetchSubjects(); // Refresh subjects after successful deletion
+        await this.fetchSubjects(); 
       } catch (error) {
         console.error('Hiba történt a tárgy törlése során:', error);
         alert('Hiba történt a tárgy törlése során.');
@@ -198,7 +213,7 @@ export default {
         subject_lang: '',
         subject_desc: '',
         subject_type: '',
-        subject_price: 6000 // Constans érték
+        subject_price: 6000 // Konstans érték
       };
     }
   },
@@ -209,6 +224,16 @@ export default {
 </script>
 
 <style scoped>
+.subject-card {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.subject-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
 .modal {
   display: block;
   position: fixed;
@@ -228,11 +253,10 @@ export default {
   padding: 20px;
   border: 1px solid #888;
   width: 40%;
-  text-align: center; /* Center align the content */
 }
 
 .modal-body {
-  text-align: center; /* Center align the content */
+  text-align: center; 
 }
 
 .close {
@@ -247,5 +271,12 @@ export default {
   color: black;
   text-decoration: none;
   cursor: pointer;
+}
+.alert {
+  z-index: 1050;
+  width: 70%;
+  font-weight: bold;
+  left: 50%;
+  transform: translateX(-50%);
 }
 </style>

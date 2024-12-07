@@ -1,19 +1,19 @@
 import { createStore } from 'vuex'
-import axios from '@/plugins/axios'; // Importáljuk az axios-t a plugins mappából
-import authService from '@/services/auth-service'; // Importáljuk az authService-t
+import axios from '@/plugins/axios'; 
+import authService from '@/services/auth-service'; 
 
 export default createStore({
   state: {
     isLoggedIn: !!localStorage.getItem('token'),
     user: null,
     isAuthor: null,
-    isAdmin: null, // Új state változó az admin ellenőrzéséhez
+    isAdmin: null,
   },
   getters: {
     isLoggedIn: state => state.isLoggedIn,
     user: state => state.user,
-    isAuthor: state => state.isAuthor, // Új getter a rang lekéréséhez
-    isAdmin: state => state.isAdmin, // Új getter az admin ellenőrzéséhez
+    isAuthor: state => state.isAuthor,
+    isAdmin: state => state.isAdmin,
   },
   mutations: {
     setLoggedIn(state, status) {
@@ -65,7 +65,7 @@ export default createStore({
           const username = response.data.username;
           const user = await authService.getUserByUsername(username, token);
           commit('setUser', user);
-          console.log('User data:', user); // Log user data to console
+          console.log('User data:', user);
           const roles = response.data.roles || [];
           const isAdmin = roles.some(role => role.role_name === 'administrator');
           const isAuthor = roles.some(role => role.role_name === 'author') || isAdmin; // Ha admin, akkor isAuthor is true
@@ -81,8 +81,8 @@ export default createStore({
     logout({ commit }) {
       commit('setLoggedIn', false);
       commit('setUser', null);
-      commit('setIsAuthor', false); // Rang törlése kijelentkezéskor
-      commit('setIsAdmin', false); // Admin státusz törlése kijelentkezéskor
+      commit('setIsAuthor', false); 
+      commit('setIsAdmin', false); 
       localStorage.removeItem('token');
     },
     setUser({ commit }, user) {

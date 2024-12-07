@@ -14,7 +14,6 @@
         <h3>Logok</h3>
         <p>Itt megtekintheted a logokat</p>
       </div>
-      <!-- További sávok ide kerülnek -->
     </div>
   </div>
     <div v-if="showUsersList" class="container">
