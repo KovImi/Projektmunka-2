@@ -1,7 +1,7 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-light">
+  <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
     <div class="container py-3">
-      <a class="navbar-brand" href="#">Minta Mária</a>
+      <a class="navbar-brand"><router-link class="nav-link nav-btn" to="/">Minta Mária</router-link></a>
       <button
         class="navbar-toggler"
         type="button"
@@ -29,8 +29,18 @@
           </li>
         </ul>
         <div class="d-flex">
-          <a href="#" class="btn register-btn rounded-pill me-2">Regisztráció</a>
-          <a href="#" class="btn login-btn rounded-pill">Belépés</a>
+          <Button v-if="!isLoggedIn" to="/register" buttonClass="register-btn" class="me-2">Regisztráció</Button>
+          <Button v-if="!isLoggedIn" to="/login" buttonClass="login-btn">Belépés</Button>
+          <div v-if="isLoggedIn" class="dropdown">
+            <button class="profile-btn" @click="toggleDropdown">
+              Profil <span class="triangle">&#9662;</span>
+            </button>
+            <ul class="dropdown-menu" :class="{ show: dropdownOpen }">
+              <li><router-link class="dropdown-item" to="/profile" @click="closeDropdown">Fiókom</router-link></li>
+              <li v-if="isAdmin"><router-link class="dropdown-item" to="/admin" @click="closeDropdown">Admin oldal</router-link></li>
+              <li><button class="dropdown-item" @click="handleLogout">Kijelentkezés</button></li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
@@ -38,8 +48,36 @@
 </template>
 
 <script>
+import Button from './Button.vue';
+import { mapGetters, mapActions } from 'vuex';
+
 export default {
   name: "NavbarComponent",
+  components: {
+    Button
+  },
+  data() {
+    return {
+      dropdownOpen: false
+    };
+  },
+  computed: {
+    ...mapGetters(['isLoggedIn', 'isAdmin']),
+  },
+  methods: {
+    ...mapActions(['logout']),
+    handleLogout() {
+      this.logout();
+      this.$router.push('/');
+      this.dropdownOpen = false;
+    },
+    toggleDropdown() {
+      this.dropdownOpen = !this.dropdownOpen;
+    },
+    closeDropdown() {
+      this.dropdownOpen = false;
+    }
+  }
 };
 </script>
 
@@ -47,63 +85,54 @@ export default {
 .nav-btn {
   font-weight: bold;
 }
-.btn {
-  align-items: center;
-  background-clip: padding-box;
-  border: 1px solid transparent;
-  border-radius: .25rem;
-  box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
-  box-sizing: border-box;
-  color: #fff;
+
+.profile-btn {
+  background-color: transparent;
+  border: none;
   cursor: pointer;
-  display: inline-flex;
-  font-family: system-ui,-apple-system,system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  justify-content: center;
-  line-height: 1.25;
-  margin: 0;
-  min-height: 3rem;
-  padding: calc(.875rem - 1px) calc(1.5rem - 1px);
-  position: relative;
-  text-decoration: none;
-  transition: all 250ms;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-  vertical-align: baseline;
-  width: auto;
+  font-size: 20px;
+  padding: 10px 20px;
+  transition: color 0.3s;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
 }
-.register-btn {
-  background-color: #333333;
+
+.profile-btn:hover {
+  color: #012b05;
 }
-.login-btn {
-  background-color: #4CAF50;
+
+.triangle {
+  margin-left: 5px;
+  font-size: 18px;
+  color: black;
 }
-.btn:hover,
-.btn:focus {
-  color: white;
-  box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background-color: white;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  margin-top: 10px;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s, transform 0.3s;
 }
-.register-btn:hover,
-.register-btn:focus {
-  background-color: #4d4d4d; /* Sötétebb szürke a hover állapothoz */
-}
-.login-btn:hover,
-.login-btn:focus {
-  background-color: #45a049; /* Sötétebb zöld a hover állapothoz */
-}
-.btn:hover {
-  transform: translateY(-2px);
-}
-.btn:active {
-  box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+
+.dropdown-menu.show {
+  display: block;
+  opacity: 1;
   transform: translateY(0);
 }
-.register-btn:active {
-  background-color: #1a1a1a; /* Még sötétebb szürke az active állapothoz */
+
+.dropdown-item {
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
-.login-btn:active {
-  background-color: #388e3c; /* Még sötétebb zöld az active állapothoz */
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
 }
 </style>

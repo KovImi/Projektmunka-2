@@ -1,6 +1,6 @@
 <template>
   <div class="container mt-5">
-    <h1 class="display-4"><strong>Engedd meg, hogy bemutatkozzak!</strong></h1>
+    <h1 class="display-4 mb-5"><strong>Engedd meg, hogy bemutatkozzak!</strong></h1>
     <p class="lead mb-5">
       Szia! Minta Mária vagyok, 20 éve segítek diákoknak a tananyag megértésében. Ha vizsgára készülsz, vagy csak szeretnéd jobban átlátni a tananyagot, szívesen segítek. A célom, hogy érthetően és egyszerűen magyarázzak. Hiszem, hogy mindenki képes jó eredményt elérni, ha a megfelelő segítséget kapja.
     </p>
@@ -38,9 +38,5 @@ export default {
   h1 {
     font-size: 3rem;
     margin-bottom: 20px;
-  }
-  ul {
-    font-size: 1.2rem;
-    line-height: 1.6;
   }
 </style>
