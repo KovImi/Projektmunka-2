@@ -7,7 +7,7 @@
         <p class="text-center">Ha le szeretnél foglalni egy időpontot, kattints az adott órára!</p>
       </div>
       <div class="col-md-4 d-flex justify-content-end align-items-center">
-        <Button to="/subjects" buttonClass="btn btn-primary">
+        <Button to="/subjects" buttonClass="login-btn">
           Tantárgyak megtekintése <i class="bi bi-arrow-right"></i>
         </Button>
       </div>
@@ -30,7 +30,7 @@
               <td>{{ timeSlot }}</td>
               <td v-for="day in days" :key="day">
                 <div v-if="bookedSubjects[day] && bookedSubjects[day][timeSlot]" @click="openModal(day, timeSlot)">
-                  <div>{{ bookedSubjects[day][timeSlot].subject_name }}</div>
+                  <div class="fw-bold">{{ bookedSubjects[day][timeSlot].subject_name }}</div>
                   <div>{{ bookedSubjects[day][timeSlot].subject_level }}</div>
                   <div>{{ bookedSubjects[day][timeSlot].subject_lang }}</div>
                 </div>
@@ -78,7 +78,7 @@
 
     <div v-if="showModal" class="modal">
       <div class="modal-content container">
-        <span class="close" @click="closeModal">&times;</span>
+        <span class="close d-flex justify-content-end mx-3" @click="closeModal">&times;</span>
         <div v-if="modalContent" class="modal-body">
           <h2 class="my-3">{{ capitalizedModalContent.subject_name }}</h2>
           <p>Szint: {{ capitalizedModalContent.subject_level }}</p>
@@ -94,28 +94,40 @@
     </div>
 
     <div v-if="showAddTimetableModal" class="modal">
-      <div class="modal-content container">
-        <span class="close" @click="closeAddTimetableModal">&times;</span>
-        <div class="modal-body">
-          <h2 class="my-3">Válassz egy tantárgyat</h2>
-          <div class="row">
-            <div class="col-md-4" v-for="subject in subjects" :key="subject.subject_id">
-              <div class="card mb-3" @click="selectSubject(subject.subject_id)">
-                <div class="card-body">
-                  <h5 class="card-title">{{ subject.subject_name }}</h5>
-                  <p class="card-text">Szint: {{ subject.subject_level }}</p>
-                  <p class="card-text">Nyelv: {{ subject.subject_lang }}</p>
-                </div>
+    <div class="modal-content container">
+      <span class="close d-flex justify-content-end mx-3" @click="closeAddTimetableModal">&times;</span>
+      <div class="modal-body">
+        <h2 class="my-3">Válassz egy tantárgyat</h2>
+        <div class="row">
+          <div class="col-md-4" v-for="subject in subjects" :key="subject.subject_id">
+            <div 
+              class="card mb-3" 
+              :class="{ 'selected-card': selectedSubjectId === subject.subject_id }" 
+              @click="selectSubject(subject.subject_id)"
+            >
+              <div class="card-body">
+                <h5 class="card-title">{{ subject.subject_name }}</h5>
+                <p class="card-text">Szint: {{ subject.subject_level }}</p>
+                <p class="card-text">Nyelv: {{ subject.subject_lang }}</p>
               </div>
             </div>
           </div>
         </div>
+        <button 
+          type="button" 
+          class="btn btn-primary mt-3" 
+          :disabled="!selectedSubjectId" 
+          @click="addTimetable"
+        >
+          Időpont hozzáadása
+        </button>
       </div>
     </div>
+  </div>
 
     <div v-if="showDeleteConfirm" class="modal">
       <div class="modal-content container">
-        <span class="close" @click="closeDeleteConfirm">&times;</span>
+        <span class="close d-flex justify-content-end mx-3" @click="closeDeleteConfirm">&times;</span>
         <div class="modal-body">
           <h2 class="my-3">Biztos, hogy le szeretnéd mondani az időpontot?</h2>
         </div>
@@ -128,7 +140,6 @@
 
     <div v-if="showDeleteTimetableConfirm" class="modal">
       <div class="modal-content container">
-        <span class="close" @click="closeDeleteTimetableConfirm">&times;</span>
         <div class="modal-body">
           <h2 class="my-3">Biztos, hogy törölni szeretnéd az időpontot?</h2>
         </div>
@@ -137,6 +148,10 @@
             <button type="button" class="btn btn-danger" @click="deleteTimetable">Igen</button>
         </div>
       </div>
+    </div>
+    <div v-if="showAlert" class="alert alert-success alert-dismissible fade show fixed-bottom m-3" role="alert">
+      {{ alertMessage }}
+      <button type="button" class="btn-close" @click="showAlert = false" aria-label="Close"></button>
     </div>
   </div>
 </template>
@@ -183,7 +198,9 @@ export default {
       showDeleteTimetableConfirm: false,
       bookingToDelete: null,
       timetableToDelete: null,
-      loading: true // State to track loading
+      loading: true, // State to track loading
+      showAlert: false,
+      alertMessage: '',
     };
   },
   computed: {
@@ -306,6 +323,9 @@ export default {
       this.selectedDay = null;
       this.selectedTimeSlot = null;
     },
+    selectSubject(subjectId) {
+      this.selectedSubjectId = subjectId;
+    },
     async addTimetable() {
       if (!this.selectedSubjectId || !this.selectedDay || !this.selectedTimeSlot) return;
 
@@ -327,33 +347,41 @@ export default {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        alert('Időpont sikeresen hozzáadva!');
+        this.alertMessage = 'Időpont sikeresen hozzáadva!';
+        this.showAlert = true;
         this.closeAddTimetableModal();
         await this.fetchTimetable(); // Refresh timetable after successful addition
       } catch (error) {
         console.error('Hiba történt az időpont hozzáadása során:', error);
-        alert('Hiba történt az időpont hozzáadása során.');
+        this.alertMessage = 'Hiba történt az időpont hozzáadása során.';
+        this.showAlert = true;
       } finally {
         this.loading = false; // Hide loader after addition
       }
     },
-    selectSubject(subjectId) {
-      this.selectedSubjectId = subjectId;
-      this.addTimetable();
-    },
     async bookTime() {
       try {
+        this.loading = true; // Show loader while booking
         console.log('Booking timetable_id:', this.modalContent.timetable_id);
         await bookTimeSlot(this.modalContent.timetable_id);
         console.log('Időpont sikeresen lefoglalva!');
+        this.alertMessage = 'Időpont sikeresen lefoglalva!';
+        this.showAlert = true;
         this.closeModal();
         await this.fetchUserBookings(); // Refresh user bookings after successful booking
       } catch (error) {
         if (error.response && error.response.status === 409) {
           console.log('Ez az időpont már le van foglalva.');
+          this.alertMessage = 'Ez az időpont már le van foglalva!';
+          this.showModal = false;
+          this.showAlert = true;
         } else {
           console.error('Hiba történt a foglalás során:', error);
+          this.alertMessage = 'Hiba történt a foglalás során!';
+          this.showAlert = true;
         }
+      } finally {
+        this.loading = false; // Hide loader after booking
       }
     },
     confirmDeleteBooking(bookingId) {
@@ -366,7 +394,8 @@ export default {
     },
     async deleteBooking() {
       if (!this.bookingToDelete) {
-        alert('Nincs kiválasztott foglalás a törléshez.');
+        this.alertMessage = 'Nincs kiválasztott foglalás a törléshez.';
+        this.showAlert = true;
         return;
       }
 
@@ -377,22 +406,26 @@ export default {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        alert('Foglalás sikeresen törölve!');
+        this.alertMessage = 'Foglalás sikeresen törölve!';
+        this.showAlert = true;
         this.closeDeleteConfirm();
-        await this.fetchUserBookings(); // Refresh user bookings after successful deletion
-        await this.populateTimetable(); // Refresh timetable after successful deletion
+        this.closeModal(); // Close the modal after deletion
+        await this.fetchTimetable(); // Refresh timetable after successful deletion
       } catch (error) {
-        console.error('Hiba történt a foglalás törlése során:', error);
-        alert('Hiba történt a foglalás törlése során.');
+        console.error('Hiba történt az időpont törlése során:', error);
+        this.alertMessage = 'Hiba történt az időpont törlése során.';
+        this.showAlert = true;
       } finally {
         this.loading = false; // Hide loader after deletion
       }
     },
     confirmDeleteTimetable() {
       this.timetableToDelete = this.modalContent.timetable_id;
+      this.showModal = false;
       this.showDeleteTimetableConfirm = true;
     },
     closeDeleteTimetableConfirm() {
+      this.showDeleteConfirm = false;
       this.showDeleteTimetableConfirm = false;
       this.timetableToDelete = null;
     },
@@ -404,13 +437,15 @@ export default {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
         });
-        alert('Időpont sikeresen törölve!');
+        this.alertMessage = 'Időpont sikeresen törölve!';
+        this.showAlert = true;
         this.closeDeleteTimetableConfirm();
         this.closeModal(); // Close the modal after deletion
         await this.fetchTimetable(); // Refresh timetable after successful deletion
       } catch (error) {
         console.error('Hiba történt az időpont törlése során:', error);
-        alert('Hiba történt az időpont törlése során.');
+        this.alertMessage = 'Hiba történt az időpont törlése során.';
+        this.showAlert = true;
       } finally {
         this.loading = false; // Hide loader after deletion
       }
@@ -477,5 +512,15 @@ tr {
 }
 .bi-arrow-right {
   margin-left: 10px;
+}
+.alert {
+  z-index: 1050; /* Ensure the alert is above other elements */
+  width: 70%;
+  font-weight: bold;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.selected-card {
+  border: 2px solid #007bff;
 }
 </style>

@@ -9,7 +9,7 @@
     </div>
     <div v-if="loading" class="loader">Betöltés...</div>
     <div v-else>
-      <table class="table table-striped text-center">
+      <table class="table table-striped text-center table-bordered rounded">
         <thead>
           <tr>
             <th @click="sortUsers('name')">Név</th>

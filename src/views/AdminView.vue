@@ -1,7 +1,10 @@
 <template>
   <div class="container mt-5">
-    <h1 class="display-4 mb-5">Admin Oldal</h1>
-    <p class="lead">Itt adminisztrátori funkciókat érhetsz el.</p>
+    <div v-if="!showUsersList && !showLogsList">
+      <h1 class="display-4 mb-5">Admin Oldal</h1>
+      <p class="lead">Itt adminisztrátori funkciókat érhetsz el.</p>
+    </div>
+
     <div v-if="!showUsersList && !showLogsList">
       <div class="admin-section" @click="showUsersList = true">
         <h3>Felhasználók</h3>
@@ -13,15 +16,16 @@
       </div>
       <!-- További sávok ide kerülnek -->
     </div>
-    <div v-if="showUsersList">
-      <UsersList />
-      <button @click="showUsersList = false" class="btn btn-secondary mt-3">Vissza</button>
-    </div>
-    <div v-if="showLogsList">
-      <LogList />
-      <button @click="showLogsList = false" class="btn btn-secondary mt-3">Vissza</button>
-    </div>
   </div>
+    <div v-if="showUsersList" class="container">
+      <button @click="showUsersList = false" class="custom-back-button"><i class="bi bi-arrow-left"></i></button>
+      <UsersList />
+    </div>
+    <div v-if="showLogsList" class="logList container-fluid ml-0">
+      <button @click="showLogsList = false" class="custom-back-button"><i class="bi bi-arrow-left"></i></button>
+      <LogList />
+    </div>
+
 </template>
 
 <script>
@@ -48,7 +52,9 @@ export default {
   max-width: 1000px;
   margin: auto;
 }
-
+.logList {
+  width: 60%;
+}
 .admin-section {
   padding: 20px;
   margin-bottom: 10px;
@@ -62,4 +68,22 @@ export default {
 .admin-section:hover {
   background-color: #e2e6ea;
 }
+.custom-back-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  margin-top: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  border-radius: 30px;
+}
+
+.custom-back-button:hover {
+  background-color: #2d8830;
+}
+
 </style>

@@ -1,7 +1,9 @@
 <template>
   <div>
     <h2 class="text-center">Logok</h2>
-    <div v-if="loading" class="loader">Betöltés...</div>
+    <div v-if="loading">
+      <Loader/>
+    </div>
     <div v-else>
       <table class="table table-striped text-center">
         <thead>
@@ -23,8 +25,12 @@
 
 <script>
 import logService from '@/services/log-service';
+import Loader from './Loader.vue';
 
 export default {
+  components: {
+    Loader
+  },
   data() {
     return {
       logs: [],
