@@ -9,16 +9,17 @@ import BookingView from '../views/BookingView.vue';
 import ProfileView from '@/views/ProfileView.vue';
 import SubjectsView from '@/views/SubjectsView.vue';
 import AdminView from '@/views/AdminView.vue';
+import NotFoundView from '@/views/NotFoundView.vue'; // Importáljuk a 404-es oldalt
 import store from '@/store';
 
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
   { path: '/about', name: 'About', component: AboutView },
-  { path: '/pricing', name: 'Pricing', component: PricesView},
-  { path: '/contact', name: 'Contact', component: ContactView},
-  { path: '/login', name: 'Login', component: LoginView},
-  { path: '/register', name: 'Register', component: RegisterView},
-  { path: '/appointment', name: 'Booking', component: BookingView},
+  { path: '/pricing', name: 'Pricing', component: PricesView },
+  { path: '/contact', name: 'Contact', component: ContactView },
+  { path: '/login', name: 'Login', component: LoginView },
+  { path: '/register', name: 'Register', component: RegisterView },
+  { path: '/appointment', name: 'Booking', component: BookingView },
   { path: '/profile', name: 'Profile', component: ProfileView, 
     beforeEnter: (to, from, next) => {
       if (!store.getters.isLoggedIn) {
@@ -37,7 +38,8 @@ const routes = [
         next(); // Ha a felhasználó admin, engedjük tovább
       }
     }
-  }
+  },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFoundView } // 404-es oldal útvonala
 ];
 
 const router = createRouter({
